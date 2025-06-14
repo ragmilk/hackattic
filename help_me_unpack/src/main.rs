@@ -1,5 +1,3 @@
-use std::env;
-
 use serde::{Deserialize, Serialize};
 use base64::prelude::*;
 
@@ -21,7 +19,7 @@ struct Response{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let access_token = env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
+    let access_token = std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
     let json_data = reqwest::get(format!("https://hackattic.com/challenges/help_me_unpack/problem?access_token={}", access_token))
     .await.expect("Error: something went wrong with GET reqwest")
     .json::<Data>()
