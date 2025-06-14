@@ -1,9 +1,7 @@
-#[allow(unused_imports)]
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha256::digest;
 
-#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct Block {
     nonce: Option<usize>,
