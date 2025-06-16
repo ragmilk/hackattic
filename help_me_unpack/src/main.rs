@@ -1,31 +1,27 @@
-use serde::{Deserialize, Serialize};
 use base64::prelude::*;
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
-struct Data{
-    bytes: String
+struct Input {
+    bytes: String,
 }
 
 #[derive(Serialize, Debug)]
-struct Response{
+struct Output {
     int: i32,
     uint: u32,
     short: i16,
     float: f32,
     double: f64,
-    big_endian_double: f64
+    big_endian_double: f64,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let access_token = std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
-    let json_data = reqwest::get(format!("https://hackattic.com/challenges/help_me_unpack/problem?access_token={}", access_token))
-    .await.expect("Error: something went wrong with GET reqwest")
-    .json::<Data>()
-    .await.expect("Error: something went wrong with parsing to json");
-
-    let decoded_data = BASE64_STANDARD.decode(json_data.bytes.as_bytes()).expect("Failed to Decode Base64");
+    let json_data = util::get::<Input>("help_me_unpack").await?;
+    let decoded_data = BASE64_STANDARD
+        .decode(json_data.bytes.as_bytes())
+        .expect("Failed to Decode Base64");
     assert_eq!(decoded_data.len(), 32);
     assert_eq!(decoded_data[10], 0);
     assert_eq!(decoded_data[11], 0);
@@ -44,16 +40,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let double = f64::from_le_bytes(data_double);
     let big_endian_double = f64::from_be_bytes(data_big_endian_double);
 
-    let response = Response{int, uint, short, float, double, big_endian_double};
-    
-    let client = reqwest::Client::new();
-    let res = client
-    .post(format!("https://hackattic.com/challenges/help_me_unpack/solve?access_token={}", access_token))
-    .json(&response)
-    .send()
-    .await?;
+    let result = Output {
+        int,
+        uint,
+        short,
+        float,
+        double,
+        big_endian_double,
+    };
 
-    println!("{:?}", res);
-    println!("{:?}", res.text().await?);
+    util::post::<Output>("help_me_unpack", result, false).await?;
     Ok(())
 }
