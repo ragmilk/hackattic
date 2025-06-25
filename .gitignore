@@ -1,5 +1,5 @@
 /*/target/
 /*/Cargo.lock
 /reading_qr/qr.png
-/brute_force_zip/passwords.txt
-/brute_force_zip/problem.zip
+/brute_force_zip/data/passwords.txt
+/brute_force_zip/data/problem.zip

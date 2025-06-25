@@ -9,7 +9,7 @@ use std::thread::JoinHandle;
 pub fn start_password_reader(
     file_path: PathBuf,
     send_password: Sender<String>,
-    secret: Arc<Mutex<String>>,
+    password: Arc<Mutex<String>>,
 ) -> JoinHandle<()> {
     thread::Builder::new()
         .name("password-reader".to_string())
@@ -17,7 +17,7 @@ pub fn start_password_reader(
             let file = File::open(file_path).unwrap();
             let reader = BufReader::new(file);
             for line in reader.lines() {
-                if !secret.lock().unwrap().is_empty() {
+                if !password.lock().unwrap().is_empty() {
                     break;
                 }
 
@@ -34,35 +34,29 @@ pub fn password_checker(
     index: usize,
     file_path: PathBuf,
     receive_password: Receiver<String>,
-    secret: Arc<Mutex<String>>,
+    password: Arc<Mutex<String>>,
 ) -> JoinHandle<()> {
     thread::Builder::new()
         .name(format!("worker-{}", index))
         .spawn(move || {
-            let file = std::fs::File::open(file_path).expect("File should exist");
-            let mut archive = zip::ZipArchive::new(file).expect("Archive validated before-hand");
+            let file = std::fs::File::open(file_path).unwrap();
+            let mut archive = zip::ZipArchive::new(file).unwrap();
 
             loop {
-                if !secret.lock().unwrap().is_empty() {
+                if !password.lock().unwrap().is_empty() {
                     break;
                 }
 
                 match receive_password.recv() {
                     Err(_) => break,
-                    Ok(password) => {
-                        let res = archive.by_index_decrypt(0, password.as_bytes());
+                    Ok(try_password) => {
+                        let res = archive.by_index_decrypt(0, try_password.as_bytes());
                         match res {
                             Ok(mut zip) => {
                                 let mut buffer = Vec::new();
                                 if zip.read_to_end(&mut buffer).is_ok() {
-                                    let mut secret_guard = secret.lock().unwrap();
-                                    if secret_guard.is_empty() {
-                                        *secret_guard = String::from_utf8(buffer).unwrap();
-                                        println!(
-                                            "Worker-{} found the password: {}",
-                                            index, password
-                                        );
-                                    }
+                                    let mut password_guard = password.lock().unwrap();
+                                    *password_guard = try_password;
                                     break;
                                 }
                             }
@@ -79,7 +73,7 @@ pub fn password_finder(
     zip_path: &str,
     password_list_path: &str,
     workers: usize,
-    secret: Arc<Mutex<String>>,
+    password: Arc<Mutex<String>>,
 ) {
     let zip_file_path = Path::new(zip_path).to_path_buf();
     let password_list_file_path = Path::new(password_list_path).to_path_buf();
@@ -89,7 +83,7 @@ pub fn password_finder(
     let password_gen_handle = start_password_reader(
         password_list_file_path,
         send_password.clone(),
-        secret.clone(),
+        password.clone(),
     );
 
     let mut worker_handles = Vec::with_capacity(workers);
@@ -98,13 +92,13 @@ pub fn password_finder(
             i,
             zip_file_path.clone(),
             receive_password.clone(),
-            secret.clone(),
+            password.clone(),
         );
         worker_handles.push(join_handle);
     }
 
     loop {
-        if !secret.lock().unwrap().is_empty() {
+        if !password.lock().unwrap().is_empty() {
             println!("\nPassword found! Shutting down all threads...");
             drop(send_password);
             break;
