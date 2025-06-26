@@ -1,0 +1,15 @@
+[package]
+name = "password_hashing"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+base64 = "0.22.1"
+hmac = "0.12.1"
+pbkdf2 = "0.12.2"
+scrypt = "0.11.0"
+serde = { version = "1.0.219", features = ["derive"] }
+sha2 = "0.10.9"
+sha256 = "1.6.0"
+tokio = { version = "1.45.1", features = ["full"] }
+util = { path = "../util" }

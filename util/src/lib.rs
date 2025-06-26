@@ -4,6 +4,7 @@ use std::fmt::Debug;
 pub async fn get<T: DeserializeOwned>(problem: &str) -> Result<T, Box<dyn std::error::Error>> {
     let access_token =
         std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
+    println!("\nFetching problem data...");
     let response = reqwest::get(format!(
         "https://hackattic.com/challenges/{}/problem?access_token={}",
         problem, access_token
@@ -13,6 +14,7 @@ pub async fn get<T: DeserializeOwned>(problem: &str) -> Result<T, Box<dyn std::e
     .json::<T>()
     .await
     .expect("Error: something went wrong with parsing to json");
+    println!("Done fetccing problem data!\n");
     Ok(response)
 }
 
@@ -25,6 +27,7 @@ pub async fn post<T: Serialize + Debug>(
         std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
     let client = reqwest::Client::new();
     let p = if playground { "&playground=1" } else { "" };
+    println!("\nPosting solution...");
     let res = client
         .post(format!(
             "https://hackattic.com/challenges/{}/solve?access_token={}{}",
