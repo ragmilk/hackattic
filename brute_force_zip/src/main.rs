@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let start_time = Instant::now();
-    let json_data = util::get::<Input>("brute_force_zip").await?;
+    let json_data = util::get_problem::<Input>("brute_force_zip").await?;
     let mut file = std::fs::File::create(zip_file_path).unwrap();
     let response = reqwest::get(json_data.zip_url)
         .await
@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let secret = get_content(zip_file_path, password);
     let result = Output { secret };
     //println!("secret: {:?}", result);
-    util::post("brute_force_zip", result, false).await?;
+    util::post_answer("brute_force_zip", result, false).await?;
     println!("\n Spent time: {} seconds.", start_time.elapsed().as_secs());
     Ok(())
 }

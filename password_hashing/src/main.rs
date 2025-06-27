@@ -40,7 +40,7 @@ type HmacSha256 = hmac::Hmac<sha2::Sha256>;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get::<Input>("password_hashing").await?;
+    let json_data = util::get_problem::<Input>("password_hashing").await?;
 
     //sha256
     let plane_password = json_data.password;
@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         scrypt,
     };
 
-    util::post("password_hashing", result, false).await?;
+    util::post_answer("password_hashing", result, false).await?;
     Ok(())
 }
 

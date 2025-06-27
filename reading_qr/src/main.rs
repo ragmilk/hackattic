@@ -14,7 +14,7 @@ struct Output {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get::<Input>("backup_restore").await?;
+    let json_data = util::get_problem::<Input>("backup_restore").await?;
     let mut file = std::fs::File::create("qr.png").unwrap();
     let response = reqwest::get(json_data.image_url)
         .await
@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let code = grids[0].decode()?.1;
 
     let result = Output { code };
-    util::post::<Output>("backup_restore", result, false).await?;
+    util::post_answer::<Output>("backup_restore", result, false).await?;
 
     Ok(())
 }

@@ -15,7 +15,7 @@ struct Output {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get::<Input>("backup_restore").await?;
+    let json_data = util::get_problem::<Input>("backup_restore").await?;
     let compressed_data = BASE64_STANDARD
         .decode(json_data.dump.as_bytes())
         .expect("Failed to Decode Base64");
@@ -31,6 +31,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     let result = Output { alive_ssns };
-    util::post::<Output>("backup_restore", result, false).await?;
+    util::post_answer::<Output>("backup_restore", result, false).await?;
     Ok(())
 }

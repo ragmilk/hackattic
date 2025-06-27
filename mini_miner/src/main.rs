@@ -21,7 +21,7 @@ struct Output {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get::<Input>("backup_restore").await?;
+    let json_data = util::get_problem::<Input>("mini_miner").await?;
     let diff = json_data.difficulty;
     let data = json_data.block.data;
 
@@ -53,6 +53,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("nonce = {}", nonce);
     let result = Output { nonce };
-    util::post::<Output>("backup_restore", result, false).await?;
+    util::post_answer::<Output>("mini_miner", result, false).await?;
     Ok(())
 }

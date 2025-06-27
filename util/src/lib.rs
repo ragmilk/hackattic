@@ -1,7 +1,9 @@
 use serde::{Serialize, de::DeserializeOwned};
 use std::fmt::Debug;
 
-pub async fn get<T: DeserializeOwned>(problem: &str) -> Result<T, Box<dyn std::error::Error>> {
+pub async fn get_problem<T: DeserializeOwned>(
+    problem: &str,
+) -> Result<T, Box<dyn std::error::Error>> {
     let access_token =
         std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
     println!("\nFetching problem data...");
@@ -18,7 +20,7 @@ pub async fn get<T: DeserializeOwned>(problem: &str) -> Result<T, Box<dyn std::e
     Ok(response)
 }
 
-pub async fn post<T: Serialize + Debug>(
+pub async fn post_answer<T: Serialize + Debug>(
     problem: &str,
     result: T,
     playground: bool,
@@ -30,13 +32,33 @@ pub async fn post<T: Serialize + Debug>(
     println!("\nPosting solution...");
     let res = client
         .post(format!(
-            "https://hackattic.com/challenges/{}/solve?access_token={}{}",
-            problem, access_token, p
+            "https://hackattic.com/challenges/{problem}/solve?access_token={access_token}{p}",
         ))
         .json(&result)
         .send()
         .await?;
     println!("{:#?}", res);
     println!("{:#?}", res.text().await?);
+    Ok(())
+}
+
+pub async fn post<T: Serialize + Debug>(
+    problem: &str,
+    result: T,
+    playground: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let access_token =
+        std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
+    let client = reqwest::Client::new();
+    let p = if playground { "&playground=1" } else { "" };
+    println!("\nPosting Data...");
+    let res = client
+        .post(format!(
+            "https://hackattic.com/challenges/{problem}/solve?access_token={access_token}{p}",
+        ))
+        .json(&result)
+        .send()
+        .await?;
+    println!("Posted!");
     Ok(())
 }
