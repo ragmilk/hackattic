@@ -10,8 +10,14 @@ struct Output {
 }
 
 #[derive(Debug, Deserialize)]
-struct Query {
-    append: String,
+#[allow(dead_code)]
+struct Claims {
+    append: Option<String>,
+    exp: Option<usize>,
+    //    iss: Option<String>,
+    //    iat: Option<usize>,
+    //    aud: Option<String>,
+    nbf: Option<usize>,
 }
 
 struct AppState {
@@ -69,27 +75,37 @@ async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl I
     let solution = cum_solution.clone();
 
     let mut validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.validate_exp = false;
     validation.set_required_spec_claims(&["append"]);
-
-    let token = match jsonwebtoken::decode::<Query>(
+    validation.validate_nbf = true;
+    match jsonwebtoken::decode::<Claims>(
         body.as_str(),
-        &DecodingKey::from_secret(secret.as_bytes()),
+        &DecodingKey::from_secret(&secret.as_bytes()),
         &validation,
     ) {
-        Ok(token) => token,
+        Ok(token) => {
+            println!("Oked tolen: {:?}", token);
+            if let Some(append_str) = token.claims.append {
+                cum_solution.push_str(&append_str);
+                return (axum::http::StatusCode::OK, "OK").into_response();
+            } else {
+                let result = Output { solution };
+                return Json::<Output>(result).into_response();
+            }
+        }
         Err(e) => match e.into_kind() {
             InvalidSignature => {
                 return (axum::http::StatusCode::UNAUTHORIZED, "Invalid Token").into_response();
             }
-            // No "append"
-            _ => {
-                let result = Output { solution };
-                return Json::<Output>(result).into_response();
+            ExpiredSignature => {
+                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
+            }
+            ImmatureSignature => {
+                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
+            }
+            kind => {
+                println!("Error: {kind:?}");
+                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
             }
         },
     };
-    println!("token: {token:?}");
-    cum_solution.push_str(&token.claims.append);
-    return (axum::http::StatusCode::OK, "OK").into_response();
 }
