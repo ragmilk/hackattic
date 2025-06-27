@@ -52,7 +52,7 @@ pub async fn post<T: Serialize + Debug>(
     let client = reqwest::Client::new();
     let p = if playground { "&playground=1" } else { "" };
     println!("\nPosting Data...");
-    let res = client
+    let _ = client
         .post(format!(
             "https://hackattic.com/challenges/{problem}/solve?access_token={access_token}{p}",
         ))

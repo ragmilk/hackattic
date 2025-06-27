@@ -1,14 +1,22 @@
-use axum::extract::State;
-use axum::response::IntoResponse;
-use axum::{Router, routing::post};
+use axum::{Json, Router, extract::State, response::IntoResponse, routing::post};
+use jsonwebtoken::{DecodingKey, Validation, errors::ErrorKind::*};
 use ngrok::prelude::*;
-use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+
+#[derive(Serialize, Debug)]
+struct Output {
+    solution: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Query {
+    append: String,
+}
 
 struct AppState {
     jwt_secret: String,
-    solution: String,
+    solution: Mutex<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -23,6 +31,7 @@ struct AppUrl {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // publish localhost:3000 with ngrok
     let tunnel = ngrok::Session::builder()
         .authtoken_from_env()
         .connect()
@@ -34,29 +43,53 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app_url = AppUrl {
         app_url: tunnel.url().to_string(),
     };
-    println!("{:#?}", app_url);
-    let json_data = util::get_problem::<Input>("jotting_jwts").await?;
+
+    let jwt_secret = util::get_problem::<Input>("jotting_jwts").await?.jwt_secret;
     let shared_state = Arc::new(AppState {
-        jwt_secret: json_data.jwt_secret,
-        solution: String::new(),
+        jwt_secret,
+        solution: Mutex::new(String::new()),
     });
+
     let app = Router::new()
         .route("/", post(jwt_handler))
         .with_state(shared_state);
-
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     tokio::spawn(async move {
         println!("Starting Web Server...");
         axum::serve(listener, app).await.unwrap();
     });
     util::post_answer::<AppUrl>("jotting_jwts", app_url, false).await?;
-
-    println!("Server started. Waiting for requests... (Press Ctrl+C to quit)");
-    tokio::signal::ctrl_c().await?;
-    println!("Shutting down...");
     Ok(())
 }
 
-async fn jwt_handler(State(_state): State<Arc<AppState>>, body: String) -> impl IntoResponse {
-    println!("{}", body);
+// TODO: Somehow Invalid token are appended
+async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl IntoResponse {
+    let secret = &state.jwt_secret;
+    let mut cum_solution = state.solution.lock().unwrap();
+    let solution = cum_solution.clone();
+
+    let mut validation = Validation::new(jsonwebtoken::Algorithm::HS256);
+    validation.validate_exp = false;
+    validation.set_required_spec_claims(&["append"]);
+
+    let token = match jsonwebtoken::decode::<Query>(
+        body.as_str(),
+        &DecodingKey::from_secret(secret.as_bytes()),
+        &validation,
+    ) {
+        Ok(token) => token,
+        Err(e) => match e.into_kind() {
+            InvalidSignature => {
+                return (axum::http::StatusCode::UNAUTHORIZED, "Invalid Token").into_response();
+            }
+            // No "append"
+            _ => {
+                let result = Output { solution };
+                return Json::<Output>(result).into_response();
+            }
+        },
+    };
+    println!("token: {token:?}");
+    cum_solution.push_str(&token.claims.append);
+    return (axum::http::StatusCode::OK, "OK").into_response();
 }
