@@ -100,11 +100,15 @@ async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl I
                 return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
             }
             ImmatureSignature => {
-                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
+                return (axum::http::StatusCode::UNAUTHORIZED, "Immature Token").into_response();
             }
             kind => {
                 println!("Error: {kind:?}");
-                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
+                return (
+                    axum::http::StatusCode::UNAUTHORIZED,
+                    format!("Error: {kind:?}"),
+                )
+                    .into_response();
             }
         },
     };
