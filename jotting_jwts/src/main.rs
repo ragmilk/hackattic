@@ -68,22 +68,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// TODO: Somehow Invalid token are appended
 async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl IntoResponse {
     let secret = &state.jwt_secret;
     let mut cum_solution = state.solution.lock().unwrap();
     let solution = cum_solution.clone();
 
     let mut validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_required_spec_claims(&["append"]);
+    validation.required_spec_claims = std::collections::HashSet::<String>::new(); //exp and nbf could be None
     validation.validate_nbf = true;
+    validation.validate_exp = true;
+
     match jsonwebtoken::decode::<Claims>(
         body.as_str(),
         &DecodingKey::from_secret(&secret.as_bytes()),
         &validation,
     ) {
         Ok(token) => {
-            println!("Oked tolen: {:?}", token);
+            println!("Oked tolen: {token:?}");
             if let Some(append_str) = token.claims.append {
                 cum_solution.push_str(&append_str);
                 return (axum::http::StatusCode::OK, "OK").into_response();
