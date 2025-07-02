@@ -1,5 +1,5 @@
-use axum::{Json, Router, extract::State, response::IntoResponse, routing::post};
-use jsonwebtoken::{DecodingKey, Validation, errors::ErrorKind::*};
+use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
+use jsonwebtoken::{DecodingKey, Validation};
 use ngrok::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -84,33 +84,20 @@ async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl I
         &validation,
     ) {
         Ok(token) => {
-            println!("Oked tolen: {token:?}");
             if let Some(append_str) = token.claims.append {
                 cum_solution.push_str(&append_str);
-                return (axum::http::StatusCode::OK, "OK").into_response();
+                return (StatusCode::OK, "OK").into_response();
             } else {
                 let result = Output { solution };
                 return Json::<Output>(result).into_response();
             }
         }
-        Err(e) => match e.into_kind() {
-            InvalidSignature => {
-                return (axum::http::StatusCode::UNAUTHORIZED, "Invalid Token").into_response();
-            }
-            ExpiredSignature => {
-                return (axum::http::StatusCode::UNAUTHORIZED, "Expired Token").into_response();
-            }
-            ImmatureSignature => {
-                return (axum::http::StatusCode::UNAUTHORIZED, "Immature Token").into_response();
-            }
-            kind => {
-                println!("Error: {kind:?}");
-                return (
-                    axum::http::StatusCode::UNAUTHORIZED,
-                    format!("Error: {kind:?}"),
-                )
-                    .into_response();
-            }
-        },
+        Err(e) => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                format!("Error: {:?}", e.into_kind()),
+            )
+                .into_response();
+        }
     };
 }
