@@ -19,10 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let zip_file_path = "problem.zip";
     let start_time = Instant::now();
     let json_data = util::get_problem::<Input>("brute_force_zip").await?;
-    let mut file = std::fs::File::create(zip_file_path).unwrap();
-    let response = reqwest::get(json_data.zip_url).await?;
-    let mut content = std::io::Cursor::new(response.bytes().await?);
-    std::io::copy(&mut content, &mut file)?;
+    util::download(zip_file_path, &json_data.zip_url).await?;
 
     println!("\nStart Password Finder...");
     if let Some(password) = brute_force_zip(zip_file_path) {
