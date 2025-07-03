@@ -64,31 +64,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let buf_len = json_data.scrypt.buflen;
     let ex_params = Params::new(7, 4, 8, buf_len)?;
     let mut ex_key = vec![0_u8; buf_len];
-    scrypt(
-        "rosebud".as_bytes(),
-        "pepper".as_bytes(),
-        &ex_params,
-        &mut ex_key,
-    )?;
+    scrypt("rosebud".as_bytes(), "pepper".as_bytes(), &ex_params, &mut ex_key)?;
     assert_eq!(u8_to_string(&ex_key), json_data.scrypt._control);
 
     let log_n = format!("{:0b}", json_data.scrypt.N).len() as u8 - 1;
-    let params = Params::new(
-        log_n,
-        json_data.scrypt.r as u32,
-        json_data.scrypt.p as u32,
-        buf_len,
-    )?;
+    let params = Params::new(log_n, json_data.scrypt.r as u32, json_data.scrypt.p as u32, buf_len)?;
     let mut key = vec![0_u8; buf_len];
     scrypt(&plane_password.as_bytes(), &salt, &params, &mut key)?;
     let scrypt = u8_to_string(&key);
 
-    let result = Output {
-        sha256,
-        hmac,
-        pbkdf2,
-        scrypt,
-    };
+    let result = Output { sha256, hmac, pbkdf2, scrypt };
 
     util::post_answer("password_hashing", result, false).await?;
     Ok(())

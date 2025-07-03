@@ -16,11 +16,9 @@ struct Output {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let json_data = util::get_problem::<Input>("backup_restore").await?;
-    let compressed_data = BASE64_STANDARD
-        .decode(json_data.dump.as_bytes())
-        .expect("Failed to Decode Base64");
+    let decoded_data = BASE64_STANDARD.decode(json_data.dump.as_bytes()).expect("Failed to Decode Base64");
 
-    let mut decoder = GzDecoder::new(&compressed_data[..]);
+    let mut decoder = GzDecoder::new(&decoded_data[..]);
     let mut decoded = String::new();
     decoder.read_to_string(&mut decoded).unwrap();
 

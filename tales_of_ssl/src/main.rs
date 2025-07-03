@@ -63,10 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.set_issuer_name(&subject_name)?;
 
     let basic_constraints = BasicConstraints::new().ca().build()?;
-    let key_usage = KeyUsage::new()
-        .digital_signature()
-        .key_encipherment()
-        .build()?;
+    let key_usage = KeyUsage::new().digital_signature().key_encipherment().build()?;
 
     let context = builder.x509v3_context(None, None);
     let subj_key_identifier = SubjectKeyIdentifier::new().build(&context)?;

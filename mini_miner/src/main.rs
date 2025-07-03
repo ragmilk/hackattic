@@ -36,15 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "data": &data,
             "nonce": nonce
         });
-        let block_string = serde_json::to_string(&block)
-            .expect("Error: something went wrong with parsing block to string");
+        let block_string = serde_json::to_string(&block).expect("Error: something went wrong with parsing block to string");
         let hash = digest(block_string);
         let hash_binary = hash.chars().fold("".to_string(), |prev, c| {
-            format!(
-                "{}{:04b}",
-                prev,
-                u8::from_str_radix(&c.to_string(), 16).unwrap()
-            )
+            format!("{}{:04b}", prev, u8::from_str_radix(&c.to_string(), 16).unwrap())
         });
         if hash_binary.chars().take(diff).all(|c| c == '0') {
             break;

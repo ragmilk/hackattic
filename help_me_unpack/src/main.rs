@@ -19,9 +19,7 @@ struct Output {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let json_data = util::get_problem::<Input>("help_me_unpack").await?;
-    let decoded_data = BASE64_STANDARD
-        .decode(json_data.bytes.as_bytes())
-        .expect("Failed to Decode Base64");
+    let decoded_data = BASE64_STANDARD.decode(json_data.bytes.as_bytes()).expect("Failed to Decode Base64");
     assert_eq!(decoded_data.len(), 32);
     assert_eq!(decoded_data[10], 0);
     assert_eq!(decoded_data[11], 0);

@@ -64,9 +64,7 @@ fn get_content(zip_file_path: &str, password: String) -> String {
     let file = std::fs::File::open(zip_file_path).unwrap();
     let mut archive = zip::ZipArchive::new(file).unwrap();
     let mut buffer = Vec::new();
-    let mut secret_file = archive
-        .by_name_decrypt("secret.txt", password.as_bytes())
-        .unwrap();
+    let mut secret_file = archive.by_name_decrypt("secret.txt", password.as_bytes()).unwrap();
     secret_file.read_to_end(&mut buffer).unwrap();
     let secret = String::from_utf8(buffer).unwrap().trim().to_string();
     secret

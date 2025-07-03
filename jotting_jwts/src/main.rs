@@ -56,9 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         solution: Mutex::new(String::new()),
     });
 
-    let app = Router::new()
-        .route("/", post(jwt_handler))
-        .with_state(shared_state);
+    let app = Router::new().route("/", post(jwt_handler)).with_state(shared_state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     tokio::spawn(async move {
         println!("Starting Web Server...");
@@ -78,11 +76,7 @@ async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl I
     validation.validate_nbf = true;
     validation.validate_exp = true;
 
-    match jsonwebtoken::decode::<Claims>(
-        body.as_str(),
-        &DecodingKey::from_secret(&secret.as_bytes()),
-        &validation,
-    ) {
+    match jsonwebtoken::decode::<Claims>(body.as_str(), &DecodingKey::from_secret(&secret.as_bytes()), &validation) {
         Ok(token) => {
             if let Some(append_str) = token.claims.append {
                 cum_solution.push_str(&append_str);
@@ -93,11 +87,7 @@ async fn jwt_handler(State(state): State<Arc<AppState>>, body: String) -> impl I
             }
         }
         Err(e) => {
-            return (
-                StatusCode::UNAUTHORIZED,
-                format!("Error: {:?}", e.into_kind()),
-            )
-                .into_response();
+            return (StatusCode::UNAUTHORIZED, format!("Error: {:?}", e.into_kind())).into_response();
         }
     };
 }
