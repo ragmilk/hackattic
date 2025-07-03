@@ -2,7 +2,7 @@ https://hackattic.com/u/ragmilk
 
 - [x] Mini miner
 - [x] Help me unpack
-- [ ] Tales of SSL
+- [x] Tales of SSL
 - [ ] Dockerized solutions
 - [x] Password hashing
 - [ ] Touch-Tone dialing

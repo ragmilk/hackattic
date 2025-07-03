@@ -16,7 +16,7 @@ pub async fn get_problem<T: DeserializeOwned>(
     .json::<T>()
     .await
     .expect("Error: something went wrong with parsing to json");
-    println!("Done fetccing problem data!\n");
+    println!("Done!\n");
     Ok(response)
 }
 
@@ -37,7 +37,6 @@ pub async fn post_answer<T: Serialize + Debug>(
         .json(&result)
         .send()
         .await?;
-    println!("{:#?}", res);
     println!("{:#?}", res.text().await?);
     Ok(())
 }
