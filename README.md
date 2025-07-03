@@ -9,7 +9,7 @@ https://hackattic.com/u/ragmilk
 - [ ] Basic face detection
 - [ ] The one with Redis
 - [ ] Visual basic math
-- [ ] A global presence
+- [x] A global presence
 - [ ] WebSocket chit chat
 - [ ] Collision course
 - [ ] Hosting git
