@@ -1,3 +1,4 @@
+
 https://hackattic.com/u/ragmilk
 
 - [x] Mini miner
@@ -10,7 +11,7 @@ https://hackattic.com/u/ragmilk
 - [ ] The one with Redis
 - [ ] Visual basic math
 - [x] A global presence
-- [ ] WebSocket chit chat
+- [x] WebSocket chit chat
 - [ ] Collision course
 - [ ] Hosting git
 - [x] Jotting JWTs
