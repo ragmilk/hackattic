@@ -1,4 +1,4 @@
-/*/target/
-/*/Cargo.lock
-/reading_qr/qr.png
-/brute_force_zip/problem.zip
+/challenges/*/target/
+/challenges/*/Cargo.lock
+/challenges/reading_qr/qr.png
+/challenges/brute_force_zip/problem.zip
