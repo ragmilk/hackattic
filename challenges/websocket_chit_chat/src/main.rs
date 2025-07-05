@@ -1,8 +1,10 @@
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use tokio_tungstenite::tungstenite::{Bytes, Utf8Bytes};
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{Bytes, Utf8Bytes, protocol::Message},
+};
 
 #[derive(Serialize, Debug)]
 struct Output {

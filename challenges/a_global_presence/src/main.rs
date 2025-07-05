@@ -45,8 +45,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             match client.get(&url_clone).send().await {
-                Ok(resp) => {
-                    println!("Success from proxy {}: Status {}", proxy_url, resp.status());
+                Ok(response) => {
+                    println!("Success from proxy {}: Status {}", proxy_url, response.status());
                 }
                 Err(_) => {
                     return;
