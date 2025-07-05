@@ -1,6 +1,14 @@
 use hound::WavReader;
 use std::f64::consts::PI;
 
+const LOW_1: f64 = 697.0;
+const LOW_2: f64 = 770.0;
+const LOW_3: f64 = 852.0;
+const LOW_4: f64 = 941.0;
+const HIGH_1: f64 = 1209.0;
+const HIGH_2: f64 = 1336.0;
+const HIGH_3: f64 = 1477.0;
+
 enum Tone {
     One,
     Two,
@@ -36,18 +44,18 @@ impl Tone {
 
     fn from_freq(pair: (f64, f64)) -> Self {
         match pair {
-            (697.0, 1209.0) => Tone::One,
-            (697.0, 1336.0) => Tone::Two,
-            (697.0, 1477.0) => Tone::Three,
-            (770.0, 1209.0) => Tone::Four,
-            (770.0, 1336.0) => Tone::Five,
-            (770.0, 1477.0) => Tone::Six,
-            (852.0, 1209.0) => Tone::Seven,
-            (852.0, 1336.0) => Tone::Eight,
-            (852.0, 1477.0) => Tone::Nine,
-            (941.0, 1209.0) => Tone::Star,
-            (941.0, 1336.0) => Tone::Zero,
-            (941.0, 1477.0) => Tone::Pound,
+            (LOW_1, HIGH_1) => Tone::One,
+            (LOW_1, HIGH_2) => Tone::Two,
+            (LOW_1, HIGH_3) => Tone::Three,
+            (LOW_2, HIGH_1) => Tone::Four,
+            (LOW_2, HIGH_2) => Tone::Five,
+            (LOW_2, HIGH_3) => Tone::Six,
+            (LOW_3, HIGH_1) => Tone::Seven,
+            (LOW_3, HIGH_2) => Tone::Eight,
+            (LOW_3, HIGH_3) => Tone::Nine,
+            (LOW_4, HIGH_1) => Tone::Star,
+            (LOW_4, HIGH_2) => Tone::Zero,
+            (LOW_4, HIGH_3) => Tone::Pound,
             _ => panic!("Invalid frequency pair"),
         }
     }
@@ -119,8 +127,8 @@ fn preprocess_samples(samples: &Vec<i16>) -> Vec<f64> {
 }
 
 fn decode_one(samples: &Vec<f64>, sample_rate: u32) -> char {
-    let low_freqs: [f64; 4] = [697.0, 770.0, 852.0, 941.0];
-    let high_freqs: [f64; 3] = [1209.0, 1336.0, 1477.0];
+    let low_freqs: [f64; 4] = [LOW_1, LOW_2, LOW_3, LOW_4];
+    let high_freqs: [f64; 3] = [HIGH_1, HIGH_2, HIGH_3];
     let lf = goertzel(samples, sample_rate, &low_freqs);
     let hf = goertzel(samples, sample_rate, &high_freqs);
     Tone::from_freq((lf, hf)).value()

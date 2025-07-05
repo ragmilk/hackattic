@@ -24,7 +24,8 @@ pub async fn post_answer<T: Serialize + Debug>(problem: &str, result: T, playgro
         .json(&result)
         .send()
         .await?;
-    println!("{:#?}", res.text().await?);
+    let response = res.text().await?;
+    println!("{}", response);
     Ok(())
 }
 
