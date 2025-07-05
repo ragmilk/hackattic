@@ -16,7 +16,6 @@ enum Tone {
     Pound,
 }
 
-#[allow(dead_code)]
 impl Tone {
     fn value(&self) -> char {
         match self {
@@ -61,32 +60,65 @@ pub fn decode(file_path: &str) -> String {
     println!("{spec:?}");
     let sample_rate = spec.sample_rate;
 
-    let samples: Vec<i32> = reader.samples::<i32>().map(|s| s.unwrap()).collect();
-    let splited = split_samples(&samples, sample_rate);
-    let len = splited.len();
-    println!("num: {len}, sample_len: {}", samples.len());
-    println!("sample_len % num: {}, sample_len / num: {}", samples.len() % len, samples.len() / len);
+    let samples: Vec<i16> = reader.samples::<i16>().map(|s| s.unwrap()).collect();
+    let splited = split_samples(&samples);
 
     for stream in splited {
+        let stream = preprocess_samples(&stream);
         let c = decode_one(&stream, sample_rate);
         res.push(c);
     }
-
     let res = res.into_iter().collect::<String>();
     return res;
 }
 
 
-//TODO: split proper
-fn split_samples(samples: &Vec<i32>, _sample_rate: u32) -> Vec<Vec<i32>> {
-    return samples.split(|&s| s == 0)
-        .map(|s| s.to_vec())
-        .filter(|s| !s.is_empty())
-        .collect();
+fn split_samples(samples: &Vec<i16>) -> Vec<Vec<i16>> {
+    let n = 30;
+    let mut result = Vec::new();
+    let mut prev = 0;
+    let mut i = 0;
+
+    while i < samples.len() {
+        if samples[i] == 0 {
+            let mut j = i;
+            while j < samples.len() && samples[j] == 0 {
+                j += 1;
+            }
+
+            let zero = j - i;
+            if zero >= n {
+                if prev < i {
+                    result.push(samples[prev..i].to_owned());
+                }
+                prev = j;
+                i = j;
+                continue;
+            }
+        }
+        i += 1;
+    }
+
+    if prev < samples.len() {
+        result.push(samples[prev..].to_owned());
+    }
+
+    result
 }
 
 
-fn decode_one(samples: &Vec<i32>, sample_rate: u32) -> char {
+fn preprocess_samples(samples: &Vec<i16>) -> Vec<f64> {
+    let samples = samples.iter().map(|&s| s as f64).collect::<Vec<f64>>();
+    let a = samples[0];
+    let b = (samples[samples.len() - 1] - a) / (samples.len() as f64 - 1.);
+    let mut res = Vec::with_capacity(samples.len());
+    for i in 0..samples.len() {
+        res.push(samples[i] - (a + b * (i as f64  - 1.)));
+    }
+    return res;
+}
+
+fn decode_one(samples: &Vec<f64>, sample_rate: u32) -> char {
     let low_freqs: [f64; 4] = [697.0, 770.0, 852.0, 941.0];
     let high_freqs: [f64; 3] = [1209.0, 1336.0, 1477.0];
     let lf = goertzel(samples, sample_rate, &low_freqs);
@@ -94,7 +126,7 @@ fn decode_one(samples: &Vec<i32>, sample_rate: u32) -> char {
     Tone::from_freq((lf, hf)).value()
 }
 
-fn goertzel(samples: &Vec<i32>, sample_rate: u32, target_freqs: &[f64]) -> f64 {
+fn goertzel(samples: &Vec<f64>, sample_rate: u32, target_freqs: &[f64]) -> f64 {
     let sample_rate = sample_rate as f64;
     let mut res = 0.0;
     let mut max_power = 0.0;

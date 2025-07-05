@@ -6,7 +6,7 @@ https://hackattic.com/u/ragmilk
 - [x] Tales of SSL
 - [ ] Dockerized solutions
 - [x] Password hashing
-- [ ] Touch-Tone dialing
+- [x] Touch-Tone dialing
 - [ ] Basic face detection
 - [ ] The one with Redis
 - [ ] Visual basic math
