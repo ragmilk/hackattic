@@ -18,11 +18,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
         let text = response.text().await?;
-        text.lines().map(|line| line.to_string()).collect::<Vec<String>>()
+        text.lines()
+            .map(|line| line.to_string())
+            .collect::<Vec<String>>()
     };
     println!("Done!");
 
-    let presence_token = util::get_problem::<Input>("a_global_presence").await?.presence_token;
+    let presence_token = util::get_problem!(Input).presence_token;
     let url = format!("https://hackattic.com/_/presence/{presence_token}");
 
     println!("Connecting  Proxies...");
@@ -37,7 +39,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            let client = match reqwest::Client::builder().proxy(proxy).timeout(std::time::Duration::from_secs(10)).build() {
+            let client = match reqwest::Client::builder()
+                .proxy(proxy)
+                .timeout(std::time::Duration::from_secs(10))
+                .build()
+            {
                 Ok(c) => c,
                 Err(_) => {
                     return;
@@ -46,7 +52,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             match client.get(&url_clone).send().await {
                 Ok(response) => {
-                    println!("Success from proxy {}: Status {}", proxy_url, response.status());
+                    println!(
+                        "Success from proxy {}: Status {}",
+                        proxy_url,
+                        response.status()
+                    );
                 }
                 Err(_) => {
                     return;
@@ -57,6 +67,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     futures::future::join_all(tasks).await;
     let result = Output {};
-    util::post_answer("a_global_presence", result, false).await?;
+    util::post_answer!(result);
     Ok(())
 }

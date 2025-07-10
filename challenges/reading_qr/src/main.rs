@@ -15,8 +15,8 @@ struct Output {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let qr_file_path = "qr.png";
-    let json_data = util::get_problem::<Input>("reading_qr").await?;
-    util::download(qr_file_path, &json_data.image_url).await?;
+    let url = util::get_problem!(Input).image_url;
+    util::download(qr_file_path, &url).await?;
 
     let qr = image::open(qr_file_path)?.to_luma8();
     let mut qr = rqrr::PreparedImage::prepare(qr);
@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let code = grids[0].decode()?.1;
 
     let result = Output { code };
-    util::post_answer::<Output>("reading_qr", result, false).await?;
+    util::post_answer!(result);
 
     Ok(())
 }

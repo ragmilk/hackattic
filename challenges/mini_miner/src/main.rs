@@ -4,7 +4,6 @@ use sha256::digest;
 
 #[derive(Deserialize, Debug)]
 struct Block {
-    nonce: Option<usize>,
     data: Value,
 }
 
@@ -21,7 +20,7 @@ struct Output {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get_problem::<Input>("mini_miner").await?;
+    let json_data = util::get_problem!(Input);
     let diff = json_data.difficulty;
     let data = json_data.block.data;
 
@@ -48,6 +47,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("nonce = {}", nonce);
     let result = Output { nonce };
-    util::post_answer::<Output>("mini_miner", result, false).await?;
+    util::post_answer!(result);
     Ok(())
 }

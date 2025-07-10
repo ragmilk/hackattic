@@ -32,7 +32,7 @@ struct Input {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get_problem::<Input>("tales_of_ssl").await?;
+    let json_data = util::get_problem!(Input);
 
     let decoded_private_key = BASE64_STANDARD.decode(json_data.private_key.as_bytes())?;
     let rsa_key = Rsa::private_key_from_der(&decoded_private_key)?;
@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cert_der = cert.to_der()?;
     let certificate = BASE64_STANDARD.encode(&cert_der);
     let result = Output { certificate };
-    util::post_answer::<Output>("tales_of_ssl", result, false).await?;
+    util::post_answer!(result);
     Ok(())
 }
 

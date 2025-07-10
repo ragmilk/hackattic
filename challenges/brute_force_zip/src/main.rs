@@ -18,7 +18,7 @@ struct Output {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let zip_file_path = "problem.zip";
     let start_time = Instant::now();
-    let json_data = util::get_problem::<Input>("brute_force_zip").await?;
+    let json_data = util::get_problem!(Input);
     util::download(zip_file_path, &json_data.zip_url).await?;
 
     println!("\nStart Password Finder...");
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("\nPassword found: {}", password);
         let secret = get_content(zip_file_path, password);
         let result = Output { secret };
-        util::post_answer("brute_force_zip", result, false).await?;
+        util::post_answer!(result);
     } else {
         println!("\nPassword not found.");
     }

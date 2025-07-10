@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app_url: tunnel.url().to_string(),
     };
 
-    let jwt_secret = util::get_problem::<Input>("jotting_jwts").await?.jwt_secret;
+    let jwt_secret = util::get_problem!(Input).jwt_secret;
     let shared_state = Arc::new(AppState {
         jwt_secret,
         solution: Mutex::new(String::new()),
@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Starting Web Server...");
         axum::serve(listener, app).await.unwrap();
     });
-    util::post_answer::<AppUrl>("jotting_jwts", app_url, false).await?;
+    util::post_answer!(app_url);
     Ok(())
 }
 

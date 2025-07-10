@@ -18,7 +18,7 @@ struct Input {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let token = util::get_problem::<Input>("websocket_chit_chat").await?.token;
+    let token = util::get_problem!(Input).token;
     let url = format!("wss://hackattic.com/_/ws/{token}");
     let intervals: Vec<u128> = vec![700, 1500, 2000, 2500, 3000];
 
@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 write.send(response).await?;
             } else if text.contains("ouch!") {
                 return Ok(());
-            } else if !text.contains("good!") {
+            } else if text.contains("congratulations!") {
                 let parts: Vec<&str> = text.split('"').collect();
                 secret = parts[1].to_string();
             }
@@ -61,6 +61,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let result = Output { secret };
-    util::post_answer("websocket_chit_chat", result, false).await?;
+    util::post_answer!(result);
     Ok(())
 }

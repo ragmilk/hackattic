@@ -1,35 +1,56 @@
-use serde::{Serialize, de::DeserializeOwned};
-use std::fmt::Debug;
-
-pub async fn get_problem<T: DeserializeOwned>(problem: &str) -> Result<T, Box<dyn std::error::Error>> {
-    let access_token = std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
-    println!("\nFetching problem data...");
-    let response = reqwest::get(format!("https://hackattic.com/challenges/{}/problem?access_token={}", problem, access_token))
-        .await
-        .expect("Error: something went wrong with GET reqwest")
-        .json::<T>()
-        .await
-        .expect("Error: something went wrong with parsing to json");
-    println!("Done!\n");
-    Ok(response)
+#[macro_export]
+macro_rules! form_url {
+    ($t:expr) => {{
+        let cdir = std::env::current_dir().unwrap();
+        let path = cdir.file_name().unwrap().to_str().unwrap();
+        let access_token = std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
+        let url = format!("https://hackattic.com/challenges/{}/{}?access_token={}", path, $t, access_token);
+        url
+    }};
 }
 
-pub async fn post_answer<T: Serialize + Debug>(problem: &str, result: T, playground: bool) -> Result<(), Box<dyn std::error::Error>> {
-    let access_token = std::env::var("HACKATTIC_ACCESS_TOKEN").expect("Please set HACKATTIC_ACCESS_TOKEN");
-    let client = reqwest::Client::new();
-    let p = if playground { "&playground=1" } else { "" };
-    println!("\nPosting solution...");
-    let res = client
-        .post(format!("https://hackattic.com/challenges/{problem}/solve?access_token={access_token}{p}",))
-        .json(&result)
-        .send()
-        .await?;
-    let response = res.text().await?;
-    println!("{}", response);
-    Ok(())
+#[macro_export]
+macro_rules! get_problem {
+    ($T:ty) => {{
+        println!("\nFetching problem data...");
+        let url = util::form_url!("problem");
+        let response = reqwest::get(url)
+            .await
+            .expect("Error: something went wrong with GET reqwest")
+            .json::<$T>()
+            .await
+            .expect("Error: something went wrong with parsing to json");
+        println!("Done!\n");
+        response
+    }};
 }
 
-pub async fn post<T: Serialize + Debug>(url: &str, result: T) -> Result<(), Box<dyn std::error::Error>> {
+#[macro_export]
+macro_rules! post_answer {
+    ($res:expr) => {
+        println!("\nPosting solution...");
+        let url = util::form_url!("solve");
+        let client = reqwest::Client::new();
+        let res = client.post(url).json(&$res).send().await?;
+        let response = res.text().await?;
+        println!("{}", response);
+    };
+}
+
+#[macro_export]
+macro_rules! post_answer_with_playground {
+    ($res:expr) => {
+        println!("\nPosting solution with playground...");
+        let url = util::form_url!("solve");
+        let url = format!("{url}&playground=1");
+        let client = reqwest::Client::new();
+        let res = client.post(url).json(&$res).send().await?;
+        let response = res.text().await?;
+        println!("{}", response);
+    };
+}
+
+pub async fn post<T: serde::Serialize + std::fmt::Debug>(url: &str, result: T) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let res = client.post(url).json(&result).send().await?;
     println!("{:#?}", res.text().await?);

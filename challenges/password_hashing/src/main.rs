@@ -40,11 +40,12 @@ type HmacSha256 = hmac::Hmac<sha2::Sha256>;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = util::get_problem::<Input>("password_hashing").await?;
+    let json_data = util::get_problem!(Input);
 
     //sha256
     let plane_password = json_data.password;
     let sha256 = sha256::digest(&plane_password);
+    println!("Calculated Sha256: {sha256}");
 
     //hmac sha256
     let salt = BASE64_STANDARD.decode(json_data.salt.as_bytes())?;
@@ -52,6 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     mac.update(&plane_password.as_bytes());
     let hmac = mac.finalize().into_bytes().into_iter().collect::<Vec<u8>>();
     let hmac = u8_to_string(&hmac);
+    println!("Calculated HmacSha256: {hmac}");
 
     //pkdf2
     let iterations = json_data.pbkdf2.rounds as u32;
@@ -59,6 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut key = vec![0_u8; 32];
     pbkdf2_hmac::<sha2::Sha256>(&plane_password.as_bytes(), &salt, iterations, &mut key);
     let pbkdf2 = u8_to_string(&key);
+    println!("Calculated Pbkdf2: {pbkdf2}");
 
     //scrypt
     let buf_len = json_data.scrypt.buflen;
@@ -72,10 +75,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut key = vec![0_u8; buf_len];
     scrypt(&plane_password.as_bytes(), &salt, &params, &mut key)?;
     let scrypt = u8_to_string(&key);
+    println!("Calculated Scrypt: {scrypt}");
 
     let result = Output { sha256, hmac, pbkdf2, scrypt };
 
-    util::post_answer("password_hashing", result, false).await?;
+    util::post_answer!(result);
     Ok(())
 }
 
