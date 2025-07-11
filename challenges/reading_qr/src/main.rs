@@ -14,7 +14,7 @@ struct Output {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let qr_file_path = "qr.png";
+    let qr_file_path = "problem.png";
     let url = util::get_problem!(Input).image_url;
     util::download(qr_file_path, &url).await?;
 
@@ -25,6 +25,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = Output { code };
     util::post_answer!(result);
-
+    std::fs::remove_file(qr_file_path)?;
     Ok(())
 }

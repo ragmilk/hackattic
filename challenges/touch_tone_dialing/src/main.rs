@@ -20,5 +20,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = Output { sequence };
     println!("result  : {}", result.sequence);
     util::post_answer!(result);
+    std::fs::remove_file(file_path)?;
     Ok(())
 }

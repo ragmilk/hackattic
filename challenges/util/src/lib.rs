@@ -50,7 +50,7 @@ macro_rules! post_answer_with_playground {
     };
 }
 
-pub async fn post<T: serde::Serialize + std::fmt::Debug>(url: &str, result: T) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn post<T: serde::Serialize + std::fmt::Debug>(url: &String, result: T) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let res = client.post(url).json(&result).send().await?;
     println!("{:#?}", res.text().await?);

@@ -31,6 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("\nPassword not found.");
     }
     println!("\n Spent time: {} seconds.", start_time.elapsed().as_secs());
+    std::fs::remove_file(zip_file_path)?;
     Ok(())
 }
 

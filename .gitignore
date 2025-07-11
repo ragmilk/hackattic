@@ -1,5 +1,2 @@
 /challenges/*/target/
 /challenges/*/Cargo.lock
-/challenges/reading_qr/qr.png
-/challenges/brute_force_zip/problem.zip
-/challenges/touch_tone_dialing/problem.wav
