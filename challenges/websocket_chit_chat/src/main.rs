@@ -31,11 +31,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut secret = String::new();
 
     while let Some(msg) = read.next().await {
+        let now = Instant::now();
         let msg = msg?;
         println!("msg: {msg:?}");
         if let Message::Text(text) = msg {
             if text.contains("ping!") {
-                let now = Instant::now();
                 let time_diff = (now - prev).as_millis();
                 println!("  time_diff: {time_diff}");
                 prev = now;
