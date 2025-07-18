@@ -7,7 +7,6 @@ edition = "2024"
 base64 = "0.22.1"
 hmac = "0.12.1"
 pbkdf2 = "0.12.2"
-reqwest = { version = "0.12.22", features = ["json"] }
 scrypt = "0.11.0"
 serde = { version = "1.0.219", features = ["derive"] }
 sha2 = "0.10.9"
